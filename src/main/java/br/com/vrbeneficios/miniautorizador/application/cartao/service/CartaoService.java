@@ -1,9 +1,11 @@
 package br.com.vrbeneficios.miniautorizador.application.cartao.service;
 
 import br.com.vrbeneficios.miniautorizador.application.cartao.dto.CartaoDTO;
+import br.com.vrbeneficios.miniautorizador.application.cartao.dto.TransacoesDTO;
+import br.com.vrbeneficios.miniautorizador.application.cartao.helper.TransacaoHelper;
 import br.com.vrbeneficios.miniautorizador.application.cartao.repository.CartaoRepository;
-import br.com.vrbeneficios.miniautorizador.domain.model.Cartao;
-import br.com.vrbeneficios.miniautorizador.domain.model.CartaoId;
+import br.com.vrbeneficios.miniautorizador.domain.model.cartao.Cartao;
+import br.com.vrbeneficios.miniautorizador.domain.model.enums.RetornoTrasacaoEnum;
 import br.com.vrbeneficios.miniautorizador.exeception.CartaoServiceException;
 import br.com.vrbeneficios.miniautorizador.exeception.ObjectNotFoundException;
 import br.com.vrbeneficios.miniautorizador.service.CrudService;
@@ -17,7 +19,7 @@ import static br.com.vrbeneficios.miniautorizador.application.cartao.mapper.Cart
 import static br.com.vrbeneficios.miniautorizador.application.cartao.mapper.CartaoMapper.mapearParaCartaoDTO;
 
 @Service
-public class CartaoService implements CrudService<Cartao, CartaoId> {
+public class CartaoService implements CrudService<Cartao, String> {
 
     private final CartaoRepository cartaoRepository;
 
@@ -31,16 +33,8 @@ public class CartaoService implements CrudService<Cartao, CartaoId> {
         return mapearParaCartaoDTO(cartao);
     }
 
-    public BigDecimal obterSaldoCartao(final String numeroCartao) throws CartaoServiceException {
-        final Optional<Cartao> cartao = cartaoRepository.findCartaoByNumeroCartao(numeroCartao);
-
-        cartao.orElseThrow(() -> new CartaoServiceException("Cartão com o numero "+cartao+" não encontrado."));
-
-        return cartao.get().getSaldo();
-    }
-
     private void validaCartaoExistente(final CartaoDTO cartaoDTO){
-        Optional<Cartao> cartaoOptional = getRepository().findById(new CartaoId(cartaoDTO.getNumeroCartao(), cartaoDTO.getSenha()));
+        Optional<Cartao> cartaoOptional = getRepository().findById(cartaoDTO.getNumeroCartao());
         cartaoOptional.ifPresent(cartao -> {
             try {
                 throw new CartaoServiceException("Cartão já existente");
@@ -50,8 +44,29 @@ public class CartaoService implements CrudService<Cartao, CartaoId> {
         });
     }
 
+    public BigDecimal obterSaldoCartao(final String numeroCartao) throws CartaoServiceException {
+        final Optional<Cartao> cartao = cartaoRepository.findById(numeroCartao);
+
+        cartao.orElseThrow(() -> new CartaoServiceException("Cartão com o numero "+cartao+" não encontrado."));
+
+        return cartao.get().getSaldo();
+    }
+
+    public RetornoTrasacaoEnum realizarTransacao(final TransacoesDTO transacoesDTO){
+        try {
+            final Cartao cartao = this.buscarPorId(transacoesDTO.getNumeroCartao());
+            final RetornoTrasacaoEnum retornoTrasacaoEnum = TransacaoHelper.validarTransacao(cartao, transacoesDTO);
+            if(RetornoTrasacaoEnum.OK.equals(retornoTrasacaoEnum)){
+                this.salvar(cartao.comSaldo(cartao.getSaldo().subtract(transacoesDTO.getValor())));
+            }
+            return retornoTrasacaoEnum;
+        } catch (ObjectNotFoundException e){
+            return RetornoTrasacaoEnum.CARTAO_INEXISTENTE;
+        }
+    }
+
     @Override
-    public JpaRepository<Cartao, CartaoId> getRepository() {
+    public JpaRepository<Cartao, String> getRepository() {
         return this.cartaoRepository;
     }
 }

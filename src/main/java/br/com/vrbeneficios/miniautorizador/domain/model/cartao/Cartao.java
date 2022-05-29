@@ -1,10 +1,9 @@
-package br.com.vrbeneficios.miniautorizador.domain.model;
+package br.com.vrbeneficios.miniautorizador.domain.model.cartao;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@IdClass(CartaoId.class)
 @Table(name = "CARTAO")
 public class Cartao {
 
@@ -12,7 +11,6 @@ public class Cartao {
     @Column(name = "NUMERO_CARTAO")
     private String numeroCartao;
 
-    @Id
     @Column(name = "SENHA")
     private String senha;
 

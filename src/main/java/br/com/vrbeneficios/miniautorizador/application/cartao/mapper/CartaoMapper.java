@@ -1,7 +1,7 @@
 package br.com.vrbeneficios.miniautorizador.application.cartao.mapper;
 
 import br.com.vrbeneficios.miniautorizador.application.cartao.dto.CartaoDTO;
-import br.com.vrbeneficios.miniautorizador.domain.model.Cartao;
+import br.com.vrbeneficios.miniautorizador.domain.model.cartao.Cartao;
 
 public class CartaoMapper {
 
