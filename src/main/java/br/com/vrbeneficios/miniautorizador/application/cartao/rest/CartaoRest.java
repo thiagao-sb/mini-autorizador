@@ -5,6 +5,8 @@ import br.com.vrbeneficios.miniautorizador.application.cartao.service.CartaoServ
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping(value = "/cartoes")
 public class CartaoRest {
@@ -21,6 +23,15 @@ public class CartaoRest {
             return ResponseEntity.status(201).body(cartaoService.criarCartao(cartaoDTO));
         }catch (Exception e){
             return ResponseEntity.status(422).body(cartaoDTO);
+        }
+    }
+
+    @GetMapping("/{numeroCartao}")
+    public ResponseEntity<BigDecimal> obterSaldo(@PathVariable String numeroCartao) {
+        try {
+            return ResponseEntity.status(200).body(cartaoService.obterSaldoCartao(numeroCartao));
+        }catch (Exception e){
+            return ResponseEntity.status(404).build();
         }
     }
 

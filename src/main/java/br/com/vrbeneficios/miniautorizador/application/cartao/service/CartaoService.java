@@ -4,7 +4,7 @@ import br.com.vrbeneficios.miniautorizador.application.cartao.dto.CartaoDTO;
 import br.com.vrbeneficios.miniautorizador.application.cartao.repository.CartaoRepository;
 import br.com.vrbeneficios.miniautorizador.domain.model.Cartao;
 import br.com.vrbeneficios.miniautorizador.domain.model.CartaoId;
-import br.com.vrbeneficios.miniautorizador.exeception.CartaoJaCadastradoException;
+import br.com.vrbeneficios.miniautorizador.exeception.CartaoServiceException;
 import br.com.vrbeneficios.miniautorizador.exeception.ObjectNotFoundException;
 import br.com.vrbeneficios.miniautorizador.service.CrudService;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,12 +31,20 @@ public class CartaoService implements CrudService<Cartao, CartaoId> {
         return mapearParaCartaoDTO(cartao);
     }
 
+    public BigDecimal obterSaldoCartao(final String numeroCartao) throws CartaoServiceException {
+        final Optional<Cartao> cartao = cartaoRepository.findCartaoByNumeroCartao(numeroCartao);
+
+        cartao.orElseThrow(() -> new CartaoServiceException("Cartão com o numero "+cartao+" não encontrado."));
+
+        return cartao.get().getSaldo();
+    }
+
     private void validaCartaoExistente(final CartaoDTO cartaoDTO){
         Optional<Cartao> cartaoOptional = getRepository().findById(new CartaoId(cartaoDTO.getNumeroCartao(), cartaoDTO.getSenha()));
         cartaoOptional.ifPresent(cartao -> {
             try {
-                throw new CartaoJaCadastradoException("Cartão já existente");
-            } catch (CartaoJaCadastradoException e) {
+                throw new CartaoServiceException("Cartão já existente");
+            } catch (CartaoServiceException e) {
                 throw new RuntimeException(e);
             }
         });
