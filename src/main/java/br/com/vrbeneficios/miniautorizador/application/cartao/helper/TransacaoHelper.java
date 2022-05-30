@@ -3,9 +3,8 @@ package br.com.vrbeneficios.miniautorizador.application.cartao.helper;
 import br.com.vrbeneficios.miniautorizador.application.cartao.dto.TransacoesDTO;
 import br.com.vrbeneficios.miniautorizador.domain.model.cartao.Cartao;
 import br.com.vrbeneficios.miniautorizador.domain.model.enums.RetornoTrasacaoEnum;
-import br.com.vrbeneficios.miniautorizador.utils.BigDecimalUtils;
 
-import static br.com.vrbeneficios.miniautorizador.utils.BigDecimalUtils.*;
+import static br.com.vrbeneficios.miniautorizador.utils.BigDecimalUtils.valorUmMenorQueValorDois;
 
 public class TransacaoHelper {
 

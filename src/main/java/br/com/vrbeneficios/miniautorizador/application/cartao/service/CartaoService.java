@@ -23,8 +23,12 @@ public class CartaoService implements CrudService<Cartao, String> {
 
     private final CartaoRepository cartaoRepository;
 
-    public CartaoService(CartaoRepository cartaoRepository) {
+    private final TransacaoService transacaoService;
+
+    public CartaoService(CartaoRepository cartaoRepository,
+                         TransacaoService transacaoService) {
         this.cartaoRepository = cartaoRepository;
+        this.transacaoService = transacaoService;
     }
 
     public CartaoDTO criarCartao(final CartaoDTO cartaoDTO) {
@@ -36,11 +40,7 @@ public class CartaoService implements CrudService<Cartao, String> {
     private void validaCartaoExistente(final CartaoDTO cartaoDTO){
         Optional<Cartao> cartaoOptional = getRepository().findById(cartaoDTO.getNumeroCartao());
         cartaoOptional.ifPresent(cartao -> {
-            try {
-                throw new CartaoServiceException("Cartão já existente");
-            } catch (CartaoServiceException e) {
-                throw new RuntimeException(e);
-            }
+            throw new CartaoServiceException("Cartão já existente");
         });
     }
 
@@ -57,7 +57,7 @@ public class CartaoService implements CrudService<Cartao, String> {
             final Cartao cartao = this.buscarPorId(transacoesDTO.getNumeroCartao());
             final RetornoTrasacaoEnum retornoTrasacaoEnum = TransacaoHelper.validarTransacao(cartao, transacoesDTO);
             if(RetornoTrasacaoEnum.OK.equals(retornoTrasacaoEnum)){
-                this.salvar(cartao.comSaldo(cartao.getSaldo().subtract(transacoesDTO.getValor())));
+                this.salvar(this.transacaoService.calculaSaldo(cartao, transacoesDTO));
             }
             return retornoTrasacaoEnum;
         } catch (ObjectNotFoundException e){
